@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="105c8e2d-0026-444e-bad1-3087755284b2" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="0783f75d-cef5-41e8-8521-de38a65991d8" file="dev.properties" />
+	<flow name="assignment_4Flow" doc:id="4285088f-e179-414f-8dad-b43e55464590" >
+		<http:listener doc:name="Listener" doc:id="964c5561-cc5f-4604-9a8b-a3e091a0519c" config-ref="HTTP_Listener_config" path="/demoClass"/>
+		<logger level="INFO" doc:name="Logger" doc:id="51e0f7f4-1be1-4a04-9e33-cd8ca0f6fdf5" message="#[payload]"/>
+		<flow-ref doc:name="Flow Reference" doc:id="a07871ef-e394-4e85-a64a-66855bc9c2a6" name="subflow"/>
+		<logger level="INFO" doc:name="Logger" doc:id="4cd5458e-8f07-4a05-99dc-4d03a10a53fd" message="#[payload]"/>
+	</flow>
+	<sub-flow name="subflow" doc:id="4ce7d880-99c7-4106-b5b0-0ca90d81c81b" >
+		<ee:transform doc:name="Transform Message" doc:id="f5ade0fd-0d8f-4da9-92aa-23978d5c161d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[attributes.queryParams.company]" doc:name="Set Variable" doc:id="7b02d85d-0133-4d12-98dc-79e7b03031d7" variableName="var0" />
+		<set-variable value="#[payload.name]" doc:name="Set Variable" doc:id="64e87904-8235-4436-b36f-b0d1322396ff" variableName="var1"/>
+		<set-variable value="#[payload.role]" doc:name="Set Variable" doc:id="cdbb94a6-c49d-4db2-a12b-de7840f9d8fe" variableName="var2"/>
+		<ee:transform doc:name="Transform Message" doc:id="f9e79db8-3a22-434d-aa7f-7514662a9a75" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+
+var a = vars.var1
+var b = vars.var2
+var c = vars.var0
+var res = p('http.body') ++ ':' ++  "hello" ++ ' ' ++ vars.var1 ++ ' ' ++ "You are a" ++ ' ' ++ vars.var2 ++ ' ' ++ "working for" ++ ' ' ++ vars.var0 
+output application/json
+---
+
+res
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="57811a6c-b0ba-414d-ae61-3fc97df63b79" message="#[payload]"/>
+	</sub-flow>
+</mule>
