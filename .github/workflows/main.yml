@@ -1,0 +1,37 @@
+name: Build and Deploy to CloudHub 2.0
+on:
+  push:
+    branches: dev
+
+jobs:
+  deploy:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: "temurin"
+        java-version: '21'
+
+    - name: Deploy to Exchange
+      run: mvn deploy -s settings.xml
+
+    - name: Deploy to CloudHub
+      run: |
+        mvn deploy -DmuleDeploy -Denvironment="${{vars.MULE_ENV}}" -Dsecure_key="${{secrets.MULE_KEY}}" -Dtarget="${{vars.MULE_TARGET}}" --settings settings.xml
+
+    - name: Send Email Notification
+      if: ${{ always() }}
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        username: ${{secrets.MAIL_ADDRESS}}
+        password: ${{secrets.MAIL_PASSWORD}}
+        subject: ${{github.job}} job of ${{github.repository}} has ${{job.status}}
+        body: ${{github.job}} in workflow ${{github.workflow}} of ${{github.repository}} has ${{job.status}}
+        to: mail123@gmail.com, mail456@gmail.com
+        from: ${{secrets.MAIL_ADDRESS}}
